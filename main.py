@@ -145,34 +145,8 @@ def relevant_format(df):
     pivot_df = pivot_df.applymap(lambda x: format_time_delta(x) if isinstance(x, timedelta) else x)
     pivot_df = pivot_df.fillna("No Next Arrival")
     pivot_df = pivot_df.replace("Bayview District - Hudson & Newhall", 'Bayview')
-    if 'LBUS' in pivot_df['Destination'].values:
-        routes = ['36','36','43', '43', '44', '44', '48','48', '52', '52', 'LBUS','LBUS']
-        destinations = ['Forest Hill Station', 
-                    'Valencia + Mission', 
-                    'Fort Mason', 
-                    'Munich + Geneva', 
-                    'Bayview', 
-                    'California + 6th Ave', 
-                    '3rd St + 20th St', 
-                    'Great Highway',
-                    'Forest Hill Station', 
-                    'Persia + Prague', 
-                    'Ferry Plaza', 
-                    'SF Zoo'
-                    ]
-    else:
-        routes = ['36','36','43', '43', '44', '44', '48','48', '52', '52']
-        destinations = ['Forest Hill Station', 
-                    'Valencia + Mission', 
-                    'Fort Mason', 
-                    'Munich + Geneva', 
-                    'Bayview', 
-                    'California + 6th Ave', 
-                    '3rd St + 20th St', 
-                    'Great Highway',
-                    'Forest Hill Station', 
-                    'Persia + Prague', 
-                    ]
+    routes = pivot_df['Route'].tolist()
+    destinations = pivot_df['Destination'].tolist()
     column_names=['Route', 'Destination', 'Next Arrival', '2nd Arrival', '3rd Arrival']
     empty_cols = pd.DataFrame(columns=column_names[2:])          
     clean_df = pd.DataFrame({'Route':routes, 'Destination': destinations})
