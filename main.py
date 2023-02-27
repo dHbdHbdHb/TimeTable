@@ -5,6 +5,7 @@ import json
 import requests
 import pandas as pd
 import re
+import time
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
 
@@ -220,10 +221,11 @@ def make_image(df):
     # return the image
     return image
 
-api = api_511(api_key)
-#while loop would start here to refresh at some increment
-local_df = pd.DataFrame()
-for values in stops_dict.values():
-    local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
-relevant_df = relevant_format(local_df)
-make_image(relevant_df)
+while(True):
+    api = api_511(api_key)
+    local_df = pd.DataFrame()
+    for values in stops_dict.values():
+        local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
+    relevant_df = relevant_format(local_df)
+    make_image(relevant_df)
+    time.sleep(120) #update image every 2 min
