@@ -115,7 +115,7 @@ def format_time_delta(delta: timedelta) -> str:
     seconds = int(delta.total_seconds())
     secs_in_a_min = 60
     minutes, seconds = divmod(seconds, secs_in_a_min)
-    time_fmt = f"{minutes}:{seconds:02d}"
+    time_fmt = f"{minutes}" + "Min " f"{seconds:02d}" + "Secs" #f"{minutes}:{seconds:02d}"
     return time_fmt
 
 def format_time(df, row, col):
