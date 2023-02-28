@@ -115,7 +115,7 @@ def format_time_delta(delta: timedelta) -> str:
     seconds = int(delta.total_seconds())
     secs_in_a_min = 60
     minutes, seconds = divmod(seconds, secs_in_a_min)
-    time_fmt = f"{minutes}" + "Min " f"{seconds:02d}" + "Secs" #f"{minutes}:{seconds:02d}"
+    time_fmt = f"{minutes}" + " Min " f"{seconds:02d}" + " Secs" #f"{minutes}:{seconds:02d}"
     return time_fmt
 
 def format_time(df, row, col):
@@ -157,65 +157,51 @@ def relevant_format(df):
     return clean_df
 
 def make_image(df):
-    # Get the dimensions of the table
-    num_cols, num_rows = df.shape[1], df.shape[0]
-    font_size = 16
-    font_data = ImageFont.truetype('/fonts/DIN Alternate Bold.ttf', font_size)
+    #Set the fonts and header size
+    font_size = 18
+    font= ImageFont.truetype('/fonts/DIN Alternate Bold.ttf', font_size)
     font_header = ImageFont.truetype('/fonts/SFCompact.ttf', 20)
     font_route = ImageFont.truetype('/fonts/SFCompact.ttf', 35)
     padding = 10
-    line_height = font_size + padding
-
-    # Set the font and font size
-    font = ImageFont.truetype("DIN Alternate Bold.ttf", size=20)
-    def max_bbox(cell, direction):
-        cell_cord = font_data.getbbox(cell, stroke_width=1)
-        if direction == 'width':
-            return cell_cord[2]-cell_cord[0]
-        else:
-            return cell_cord[3] - cell_cord[1]
-
-    # Calculate the width and height of each cell
-    cell_width = (df.applymap(lambda x: max_bbox(x, 'width'))).to_numpy().max()
-    cell_height = (df.applymap(lambda x: max_bbox(x, 'height'))).to_numpy().max()
-
-    # Set the dimensions of the image (would change for whatever display)
-    image_width = 180*5 + padding
-    image_height = 400 
+    header_space = 60
 
     # Create the image
+    image_width = 800
+    image_height = 480 
     image = Image.new("RGB", (image_width, image_height), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
 
-    # Draw the table headers
-    x = padding
-    y = padding
-    for header in df.columns:
-        draw.rectangle((x - padding, y , x + 170, y + (cell_height + padding)*2), fill=(194, 136, 74), outline=(0, 0, 0))
-        draw.text((x + padding*2, y + padding), header, font=font_header, fill=0)
-        x += 180  # adjust the column width as needed
-    draw.line((0, y + 48, image_width - padding, y + 48), fill=(0, 0, 0), width=8)
+    # Calculate the width and height of each cell
+    cell_width = image_width/5
+    cell_height = ((image_height - header_space)/(len(df))) #need to figure this part out
 
-    #Draw the rows with destination and times
+    # Draw the table headers
+    x = 0
+    y = 0
+    for header in df.columns:
+        draw.rectangle((x, y , x + cell_width, y + header_space), fill=(194, 136, 74), outline=(0, 0, 0))
+        draw.text((x + padding, y + padding), header, font=font_header, fill=0)
+        x += cell_width  # adjust the column width
+
+    #Draw the rows with destination and times.  Loops through rows first
     for i, row in df.iterrows():
-        x = padding
+        x = 0
         for j, val in enumerate(row):
-            y = (cell_height+padding) * (i + 2)
+            y = (cell_height) * (i) +header_space
             if j >= 1:
                 if i%2 == 1:
-                    draw.rectangle((x-padding, y + 10, x + 170, y + cell_height*2+3), fill=(211, 211, 211))
-                draw.text((x - 5, y + padding), str(val), font=font, fill=(0, 0, 0))
-                draw.line((x - 10 ,y + padding, x-10 ,y+(cell_height*2)), fill=(0,0,0), width=1)
-            elif i%2 == 1:
-                draw.rectangle((x- padding, y - 16, x + cell_width + 35, y + cell_height + 20), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 25, y - padding), str(val), font=font_route, fill=(0, 0, 0))
-            x += 180
+                    draw.rectangle((x, y , x + cell_width, y + cell_height), fill=(211, 211, 211), outline= (0,0,0))
+                draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
+            elif i%2 == 1: #The first column
+                draw.rectangle((x, y - cell_height, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
+                draw.text((x + 15, y - padding), str(val), font=font_route, fill=(0, 0, 0))
+                draw.line((x + cell_width - 1 ,y - cell_height, x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
+            x += cell_width
             # Draw vertical lines between columns
-            draw.line((x - 10 ,y + padding, x-10 ,y+(cell_height*2)+3), fill=(0,0,0), width=1)
-        # Draw horizontal lines between rows
-        y = (cell_height+padding) * (i + 2) 
-        draw.line((180, y+padding, image_width - padding, y + padding), fill=(0, 0, 0), width=1)
-        draw.line((180, y+padding+(cell_height+padding), image_width - padding, y + padding +(cell_height+padding)), fill=(0, 0, 0), width=1)
+            draw.line((x ,y, x, y+(cell_height*2)), fill=(0,0,0), width=1)
+    #line separating headers from data
+    draw.line((0, header_space, image_width, header_space), fill=(0, 0, 0), width=10)
+    
     # save the image
     image.save("display_table.png")
     # return the image
