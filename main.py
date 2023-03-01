@@ -8,6 +8,7 @@ import re
 import time
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
+import os, glob
 
 
 api_key = 'da56733a-6d62-4da1-9d2f-4e882d46478b'
@@ -222,7 +223,11 @@ def make_image(df):
     draw.text((3, 35), "Updated at " + str(current_time), font=font, fill=(0,0,0))
     print("Updated at " + str(current_time))
     # save the image
-    image.save("static/images/display_table.png")
+    unique_time = datetime.now()
+    unique_time = unique_time.strftime("%-m_%-d-%H_%-M")
+    for filename in glob.glob("static/images/display*"):
+        os.remove(filename)
+    image.save("static/images/display"+ unique_time + ".png")
     # return the image
     return image
 

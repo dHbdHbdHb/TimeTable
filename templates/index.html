@@ -9,7 +9,7 @@
         </h2>
         <h1></h1>
         <div>
-            <img src="/static/images/display_table.png"/>
+            <img src="{{ url_for('static', filename='images/' + image_name) }}">
         </div>
     </body>
 </html>
