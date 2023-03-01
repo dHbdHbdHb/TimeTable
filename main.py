@@ -174,9 +174,9 @@ def relevant_format(df):
 def make_image(df):
     #Set the fonts and header size
     font_size = 18
-    font= ImageFont.truetype('/fonts/DIN Alternate Bold.ttf', font_size)
-    font_header = ImageFont.truetype('/fonts/SFCompact.ttf', 20)
-    font_route = ImageFont.truetype('/fonts/SFCompact.ttf', 35)
+    font= ImageFont.truetype('fonts/DIN Alternate Bold.ttf', font_size)
+    font_header = ImageFont.truetype('fonts/SFCompact.ttf', 20)
+    font_route = ImageFont.truetype('fonts/SFCompact.ttf', 35)
     padding = 10
     header_space = 60
 
