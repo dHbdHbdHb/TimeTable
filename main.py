@@ -46,15 +46,29 @@ class api_511:
         self.api_key = api_key
     
     def get_request(self, url, params):
-        response = requests.get(
-            url = url,
-            params = {
-                'api_key': self.api_key,
-                **params
-            }
-        )
-        decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
-        return json.loads(decoded)
+        try:
+            response = requests.get(
+                url = url,
+                params = {
+                    'api_key': self.api_key,
+                    **params
+                }
+            )
+            decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
+            print(api_key)
+            return json.loads(decoded)
+        except:
+            self.api_key = 'd9a97f78-8ea2-4221-a834-782930d8cd5b' #sienna's API key lol
+            response = requests.get(
+                url = url,
+                params = {
+                    'api_key': self.api_key,
+                    **params
+                }
+            )
+            decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
+            print(api_key)
+            return json.loads(decoded)      
     
     def get_stops(self, operator_id='SF'):
         response = self.get_request(
@@ -145,7 +159,7 @@ def relevant_format(df):
     pivot_df = pivot_df.rename(columns={'line': 'Route', 'destination_stop_name': 'Destination', 'Arrival 1': 'Next Arrival'})
     pivot_df = pivot_df.applymap(lambda x: format_time_delta(x) if isinstance(x, timedelta) else x)
     pivot_df = pivot_df.fillna("No Next Arrival")
-    pivot_df = pivot_df.replace("Bayview District - Hudson & Newhall", 'Bayview')
+    pivot_df = pivot_df.replace({"Bayview District - Hudson & Newhall": 'Bayview', 'Wawona + 46th Avenue': 'Wawona +46th Ave'})
     routes = pivot_df['Route'].tolist()
     destinations = pivot_df['Destination'].tolist()
     column_names=['Route', 'Destination', 'Next Arrival', '2nd Arrival', '3rd Arrival']
@@ -154,6 +168,7 @@ def relevant_format(df):
     clean_df = pd.concat([clean_df, empty_cols], axis=1)
     clean_df[['Next Arrival', '2nd Arrival', '3rd Arrival']] = \
         pivot_df.loc[:, ~pivot_df.columns.isin(['Route', 'Destination'])].iloc[:, :3].values
+    print(clean_df)
     return clean_df
 
 def make_image(df):
@@ -201,9 +216,13 @@ def make_image(df):
             draw.line((x ,y, x, y+(cell_height*2)), fill=(0,0,0), width=1)
     #line separating headers from data
     draw.line((0, header_space, image_width, header_space), fill=(0, 0, 0), width=10)
-    
+    #Update time:
+    current_time = datetime.now()
+    current_time = current_time.strftime("%H:%M")
+    draw.text((3, 35), "Updated at " + str(current_time), font=font, fill=(0,0,0))
+    print("Updated at " + str(current_time))
     # save the image
-    image.save("display_table.png")
+    image.save("static/images/display_table.png")
     # return the image
     return image
 
@@ -214,4 +233,5 @@ while(True):
         local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
     relevant_df = relevant_format(local_df)
     make_image(relevant_df)
-    time.sleep(120) #update image every 2 min
+    time.sleep(420) #update image every 7 because of API limits
+
