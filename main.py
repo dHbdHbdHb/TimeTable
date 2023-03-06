@@ -1,6 +1,4 @@
 
-#eventual main script
-
 import json
 import requests
 import pandas as pd
@@ -218,12 +216,12 @@ def make_image(df):
                 else:
                     draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
             elif i%2 == 1 and (df['Route'] == val).sum() == 2: #The first column if there are two instances of the route
-                draw.rectangle((x, y - cell_height, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 15, y - padding), str(val), font=font_route, fill=(0, 0, 0))
+                draw.rectangle((x, y, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
+                draw.text((x + 15, y + padding), str(val), font=font_route, fill=(0, 0, 0))
                 draw.line((x + cell_width - 1 ,y - cell_height, x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
-            elif (df['Route'] == val).sum() == 1:
+            elif (df['Route'] == val).sum() == 1: #The first column if there is one instance
                 draw.rectangle((x, y , x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 15, y), str(val), font=font_single_route, fill=(0, 0, 0))
+                draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
                 draw.line((x + cell_width - 1 ,y - cell_height, x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
             x += cell_width
             # Draw vertical lines between columns
@@ -243,6 +241,8 @@ def make_image(df):
     image.save("static/images/display"+ unique_time + ".png")
     # return the image
     return image
+
+
 
 while(True):
     api = api_511(api_key)
