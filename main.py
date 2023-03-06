@@ -206,13 +206,10 @@ def make_image(df):
             if j >= 1:
                 if i%2 == 1:
                     draw.rectangle((x, y , x + cell_width, y + cell_height), fill=(211, 211, 211), outline= (0,0,0))
-                #condition to change color based off whether should leave or not
                 if j >= 2 and val.split()[0] == "No":
                     draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
                 elif j >= 2 and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15:
                     draw.text((x + 3, y + padding), str(val), font=font, fill=(10, 110, 10))
-                elif j >= 2 and int(val.split()[0]) <= 4:
-                    draw.text((x + 3, y + padding), str(val), font=font, fill=(255, 25, 37))
                 else:
                     draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
             elif i%2 == 1 and (df['Route'] == val).sum() == 2: #The first column if there are two instances of the route
