@@ -136,6 +136,7 @@ def format_time(df, row, col):
     return time
 
 def filter_by_time(df):
+    df = df.loc[(df['line'] != '36') | ((df['line'] == '36') & (df['monitored_stop_id'].isin(['16669', '16665'])))].reset_index(drop = True)
     delta = []
     for i in range(df.shape[0]):
         #Some reformatting of objs/strings in df to be in datetime format
@@ -202,27 +203,31 @@ def make_image(df):
     for i, row in df.iterrows():
         x = 0
         for j, val in enumerate(row):
-            y = (cell_height) * (i) +header_space
+            y = (cell_height) * (i-1) +header_space
             if j >= 1:
+                #Alternate gray background to data cells
                 if i%2 == 1:
-                    draw.rectangle((x, y , x + cell_width, y + cell_height), fill=(211, 211, 211), outline= (0,0,0))
+                    draw.rectangle((x, y + cell_height , x + cell_width, y + (cell_height*2)), fill=(211, 211, 211), outline= (0,0,0))
+                #condition to change color based off whether should leave or not
                 if j >= 2 and val.split()[0] == "No":
-                    draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
+                    draw.text((x + 3, y + cell_height+ padding), str(val), font=font, fill=(0, 0, 0))
                 elif j >= 2 and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15:
-                    draw.text((x + 3, y + padding), str(val), font=font, fill=(10, 110, 10))
+                    draw.text((x + 3, y + cell_height + padding), str(val), font=font, fill=(10, 110, 10))
+                elif j >= 2 and int(val.split()[0]) <= 4:
+                    draw.text((x + 3, y + cell_height + padding), str(val), font=font, fill=(255, 25, 37))
                 else:
-                    draw.text((x + 3, y + padding), str(val), font=font, fill=(0, 0, 0))
+                    draw.text((x + 3, y + cell_height + padding), str(val), font=font, fill=(0, 0, 0))
+            elif (df['Route'] == val).sum() == 1: #The first column if there is a single instance of the route
+                draw.rectangle((x, y, x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
+                draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
+                draw.line((x + cell_width - 1 ,y , x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
             elif i%2 == 1 and (df['Route'] == val).sum() == 2: #The first column if there are two instances of the route
                 draw.rectangle((x, y, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
                 draw.text((x + 15, y + padding), str(val), font=font_route, fill=(0, 0, 0))
-                draw.line((x + cell_width - 1 ,y - cell_height, x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
-            elif (df['Route'] == val).sum() == 1: #The first column if there is one instance
-                draw.rectangle((x, y , x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
-                draw.line((x + cell_width - 1 ,y - cell_height, x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
+                draw.line((x + cell_width - 1 ,y , x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
             x += cell_width
             # Draw vertical lines between columns
-            draw.line((x ,y, x, y+(cell_height*2)), fill=(0,0,0), width=1)
+            draw.line((x ,y , x ,y+(cell_height*2)), fill=(0,0,0), width=1)
     #line separating headers from data
     draw.line((0, header_space, image_width, header_space), fill=(0, 0, 0), width=10)
     #Update time:
