@@ -11,9 +11,9 @@ import threading
 import time
 # Set up the GPIO pin
 import RPi.GPIO as GPIO
-pin_out = 2
+button_pin = 2
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(pin_out, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 
 api_key = 'da56733a-6d62-4da1-9d2f-4e882d46478b'
@@ -251,41 +251,15 @@ def make_image(df):
     # return the image
     return image
 
-#Comment out for debugging from mac/pc
-def main_loop():
-    while True:
+try:    
+    while(True):
         api = api_511(api_key)
         local_df = pd.DataFrame()
         for values in stops_dict.values():
             local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
         relevant_df = relevant_format(local_df)
         make_image(relevant_df)
-        time.sleep(420)
-
-def thread_function(event):
-    while True:
-        if event.is_set():
-            event.clear()  # Clear the event if it was set by the button press
-        main_loop()
-
-# Set up the interrupt for the button press
-def button_callback(channel):
-    event.set()
-
-event = threading.Event()
-thread = threading.Thread(target=thread_function, args=(event,))
-thread.start()
-
-GPIO.add_event_detect(pin_out, GPIO.FALLING, callback=button_callback, bouncetime=200)
-
-
-# Uncomment if running from 
-# while(True):
-#     api = api_511(api_key)
-#     local_df = pd.DataFrame()
-#     for values in stops_dict.values():
-#         local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
-#     relevant_df = relevant_format(local_df)
-#     make_image(relevant_df)
-#     time.sleep(420) #update image every 7 because of API limits
+        GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
+except KeyboardInterrupt:
+    GPIO.cleanup()
 
