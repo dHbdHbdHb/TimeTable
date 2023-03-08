@@ -142,8 +142,8 @@ def format_time(df, row, col):
     return time
 
 def color_tag(val, stop_id):
-    green_time = 8
-    red_time = 2
+    green_time = 8 
+    red_time = 0
     walking_time = stops_dict.get(stop_id) #stops_dict["monitored_stop_id"]
     val = format_time_delta(val)
     etd = int(val.split()[0])
