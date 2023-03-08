@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 import os, glob
 import threading
 import time
-Set up the GPIO pin
+#Set up the GPIO pin
 import RPi.GPIO as GPIO
 button_pin = 2
 GPIO.setmode(GPIO.BCM)
