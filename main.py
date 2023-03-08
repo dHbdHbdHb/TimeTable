@@ -276,8 +276,8 @@ try:
     while(True):
         api = api_511(api_key)
         local_df = pd.DataFrame()
-        for values in stops_dict.values():
-            local_df = pd.concat([local_df, api.get_stop_monitoring(values)], ignore_index=True)
+        for key in stops_dict:
+           local_df = pd.concat([local_df, api.get_stop_monitoring(key)], ignore_index=True)
         relevant_df = relevant_format(local_df)
         make_image(relevant_df)
         GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
