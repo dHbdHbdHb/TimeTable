@@ -7,8 +7,9 @@ import time
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
 import os, glob
-import threading
 import time
+import logging
+from waveshare_epd import epd7in5_V2
 #Set up the GPIO pin
 import RPi.GPIO as GPIO
 button_pin = 2
@@ -267,12 +268,24 @@ def make_image(df):
     for filename in glob.glob("static/images/display*"):
         os.remove(filename)
     image.save("static/images/display"+ unique_time + ".png")
+    image = image.tobitmap()
+    #display image and protect screen
+    logging.info("init and Clear")
+    epd.init()
+    epd.Clear()    
+    epd.display(epd.getbuffer(image))
+    epd.sleep()
     # return the image
     return image
 
 
 # Comment this out for debugg
-try:    
+
+logging.basicConfig(level=logging.DEBUG)
+
+try:
+    logging.info("epd7in5_V2 Demo")
+    epd = epd7in5_V2.EPD()
     while(True):
         api = api_511(api_key)
         local_df = pd.DataFrame()
@@ -281,8 +294,20 @@ try:
         relevant_df = relevant_format(local_df)
         make_image(relevant_df)
         GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
+        if datetime.now().strftime('%H') == '03':
+            print('Clearing screen to avoid burn-in.')
+            epd.Clear()
+
 except KeyboardInterrupt:
     GPIO.cleanup()
+    logging.info("Clear...")
+    epd.init()
+    epd.Clear()
+
+except IOError as e:
+    logging.info(e)
+    epd.sleep()
+
 
 
 # Comment this out if on Pi
