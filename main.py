@@ -166,7 +166,7 @@ def filter_by_time(df):
     delta = []
     for i in range(df.shape[0]):
         #Some reformatting of objs/strings in df to be in datetime format
-        timestamp = format_time(df, 0, 'timestamp')
+        timestamp = datetime.utcnow()
         first_arrival = format_time(df, i, 'expected_arrival_time')
         delta.append(first_arrival - timestamp)
     df["time_till_departure"] = delta
@@ -188,7 +188,7 @@ def relevant_format(df):
     pivot_df = pivot_df.fillna("No Next Arrival")
     #make display ready route names
     pivot_df = pivot_df.replace({"Hudson Ave & 3rd St": 'Bayview', 'Dublin St & La Grande Ave': 'Glen Park', \
-                                 'Lower Great Hwy & Rivera St': 'Great Hwy', 'California St & 6th Ave': 'California & 6th Ave',\
+                                 'Lower Great Hwy & Rivera St': 'Great Hwy', 'California St & 6th Ave': 'The Richmond',\
                                    'Munich St & Geneva Ave': 'City College', 'Laguna Honda Blvd/Forest Hill Sta': 'Forest Hill',\
                                      'Valencia St & Mission St': 'Valencia & Mission', 'Marina Blvd & Laguna St': 'Marina', \
                                           })
@@ -206,7 +206,7 @@ def make_image(df):
     #Set the fonts and header size
     font_size = 18
     font= ImageFont.truetype('fonts/DIN Alternate Bold.ttf', font_size)
-    font_NA= ImageFont.truetype('fonts/DIN Alternate Regular.ttf', font_size)
+    font_direction= ImageFont.truetype('fonts/Trebuchet MS Bold.ttf', font_size)
     font_header = ImageFont.truetype('fonts/SFCompact.ttf', 20)
     font_route = ImageFont.truetype('fonts/SFCompact.ttf', 35)
     font_single_route = ImageFont.truetype('fonts/SFCompact.ttf', 30)
@@ -242,7 +242,7 @@ def make_image(df):
                     draw.rectangle((x, y + cell_height , x + cell_width, y + (cell_height*2)), fill=(211, 211, 211), outline= (0,0,0))
                 #condition to change color based off whether should leave or not
                 if j >= 2 and val.split()[0] == "No":
-                    draw.text((x + 3, y + cell_height+ padding), val, font=font_NA, fill='grey') 
+                    draw.text((x + 3, y + cell_height+ padding), val, font=font, fill='grey') 
                 elif j >= 2 and val.split(":")[1] == "G": #and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15: ### something like str(val.split(":")[1] == G
                     draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black') #Write in green text
                 elif j >= 2 and val.split(":")[1] == "R": #int(val.split()[0]) <= 4: ### something like str(val).split(":")[1] == R
@@ -250,7 +250,7 @@ def make_image(df):
                 elif j>=2:
                     draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='grey')
                 else:
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black' )
+                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font_direction, fill='black' )
             elif (df['Route'] == val).sum() == 1: #The first column if there is a single instance of the route
                 draw.rectangle((x, y, x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
                 draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
