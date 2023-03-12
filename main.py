@@ -186,7 +186,12 @@ def relevant_format(df):
     pivot_df = pivot_df.reset_index()
     pivot_df = pivot_df.rename(columns={'line': 'Route', 'destination_stop_name': 'Destination', 'Arrival 1': 'Next Arrival'})
     pivot_df = pivot_df.fillna("No Next Arrival")
-    pivot_df = pivot_df.replace({"Bayview District - Hudson & Newhall": 'Bayview', 'Wawona + 46th Avenue': 'Wawona +46th Ave'})
+    #make display ready route names
+    pivot_df = pivot_df.replace({"Hudson Ave & 3rd St": 'Bayview', 'Dublin St & La Grande Ave': 'Glen Park', \
+                                 'Lower Great Hwy & Rivera St': 'Great Hwy', 'California St & 6th Ave': 'California & 6th Ave',\
+                                   'Munich St & Geneva Ave': 'City College', 'Laguna Honda Blvd/Forest Hill Sta': 'Forest Hill',\
+                                     'Valencia St & Mission St': 'Valencia & Mission', 'Marina Blvd & Laguna St': 'Marina', \
+                                          })
     routes = pivot_df['Route'].tolist()
     destinations = pivot_df['Destination'].tolist()
     column_names=['Route', 'Destination', 'Next Arrival', '2nd Arrival', '3rd Arrival']
@@ -237,13 +242,15 @@ def make_image(df):
                     draw.rectangle((x, y + cell_height , x + cell_width, y + (cell_height*2)), fill=(211, 211, 211), outline= (0,0,0))
                 #condition to change color based off whether should leave or not
                 if j >= 2 and val.split()[0] == "No":
-                    draw.text((x + 3, y + cell_height+ padding), val, font=font_NA, fill='black') 
+                    draw.text((x + 3, y + cell_height+ padding), val, font=font_NA, fill='grey') 
                 elif j >= 2 and val.split(":")[1] == "G": #and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15: ### something like str(val.split(":")[1] == G
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill=(10, 110, 10)) #Write in green text
+                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black') #Write in green text
                 elif j >= 2 and val.split(":")[1] == "R": #int(val.split()[0]) <= 4: ### something like str(val).split(":")[1] == R
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill=(255, 25, 37))
+                    draw.text((x + 3, y + cell_height + padding), ("! " + val.split(":")[0] + " !"), font=font, fill=(255, 25, 37))
+                elif j>=2:
+                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='grey')
                 else:
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black')
+                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black' )
             elif (df['Route'] == val).sum() == 1: #The first column if there is a single instance of the route
                 draw.rectangle((x, y, x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
                 draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
@@ -268,12 +275,13 @@ def make_image(df):
     for filename in glob.glob("static/images/display*"):
         os.remove(filename)
     image.save("static/images/display"+ unique_time + ".png")
-    image = image.tobitmap()
     #display image and protect screen
-    logging.info("init and Clear")
+    print("init and Clear")
     epd.init()
-    epd.Clear()    
-    epd.display(epd.getbuffer(image))
+    epd.Clear()
+    h_image = Image.new('1', (epd.width, epd.height), 255)
+    h_image.paste(image, (0,0))
+    epd.display(epd.getbuffer(h_image))
     epd.sleep()
     # return the image
     return image
@@ -281,10 +289,10 @@ def make_image(df):
 
 # Comment this out for debugg
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 try:
-    logging.info("epd7in5_V2 Demo")
+    #logging.info("epd7in5_V2 Demo")
     epd = epd7in5_V2.EPD()
     while(True):
         api = api_511(api_key)
@@ -300,12 +308,14 @@ try:
 
 except KeyboardInterrupt:
     GPIO.cleanup()
-    logging.info("Clear...")
+    print("Clear...")
+    #logging.info("Clear...")
     epd.init()
     epd.Clear()
 
 except IOError as e:
-    logging.info(e)
+    print("error")
+    #logging.info(e)
     epd.sleep()
 
 
