@@ -73,7 +73,7 @@ class api_511:
                 }
             )
             decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
-            print(api_key)
+            print("api key used: " + api_key)
             return json.loads(decoded)      
     
     def get_stops(self, operator_id='SF'):
@@ -135,7 +135,9 @@ def format_time_delta(delta: timedelta) -> str:
     seconds = int(delta.total_seconds())
     secs_in_a_min = 60
     minutes, seconds = divmod(seconds, secs_in_a_min)
-    time_fmt = f"{minutes}" + " Min " f"{seconds:02d}" + " Secs" #f"{minutes}:{seconds:02d}"
+    if seconds >= 30:
+        minutes = minutes + 1
+    time_fmt = f"{minutes}" + " min" #f"{minutes}:{seconds:02d}"
     return time_fmt
 
 def format_time(df, row, col):
@@ -188,9 +190,12 @@ def relevant_format(df):
     pivot_df = pivot_df.fillna("No Next Arrival")
     #make display ready route names
     pivot_df = pivot_df.replace({"Hudson Ave & 3rd St": 'Bayview', 'Dublin St & La Grande Ave': 'Glen Park', \
-                                 'Lower Great Hwy & Rivera St': 'Great Hwy', 'California St & 6th Ave': 'The Richmond',\
-                                   'Munich St & Geneva Ave': 'City College', 'Laguna Honda Blvd/Forest Hill Sta': 'Forest Hill',\
-                                     'Valencia St & Mission St': 'Valencia & Mission', 'Marina Blvd & Laguna St': 'Marina', \
+                                 'Lower Great Hwy & Rivera St': 'Great Hwy', '20th St & 3rd St': 'The Mission',\
+                                 'California St & 6th Ave': 'The Richmond', 'Munich St & Geneva Ave': 'City College',\
+                                  'Laguna Honda Blvd/Forest Hill Sta': 'Forest Hill', \
+                                  'Valencia St & Mission St': 'The Mission', 'Marina Blvd & Laguna St': 'Marina',\
+                                  'Jones St & Beach St': "Downtown", "Wawona/46th Ave /Sf Zoo": 'SF Zoo',\
+                                  "Steuart St & Mission St": 'Embarcadero'
                                           })
     routes = pivot_df['Route'].tolist()
     destinations = pivot_df['Destination'].tolist()
@@ -206,7 +211,7 @@ def make_image(df):
     #Set the fonts and header size
     font_size = 18
     font= ImageFont.truetype('fonts/DIN Alternate Bold.ttf', font_size)
-    font_direction= ImageFont.truetype('fonts/Trebuchet MS Bold.ttf', font_size)
+    font_direction= ImageFont.truetype('fonts/Trebuchet MS Bold.ttf', 20)
     font_header = ImageFont.truetype('fonts/SFCompact.ttf', 20)
     font_route = ImageFont.truetype('fonts/SFCompact.ttf', 35)
     font_single_route = ImageFont.truetype('fonts/SFCompact.ttf', 30)
@@ -287,10 +292,8 @@ def make_image(df):
     return image
 
 
-# Comment this out for debugg
 
 #logging.basicConfig(level=logging.DEBUG)
-
 try:
     #logging.info("epd7in5_V2 Demo")
     epd = epd7in5_V2.EPD()
@@ -301,11 +304,11 @@ try:
            local_df = pd.concat([local_df, api.get_stop_monitoring(key)], ignore_index=True)
         relevant_df = relevant_format(local_df)
         make_image(relevant_df)
-        GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
         if datetime.now().strftime('%H') == '03':
             print('Clearing screen to avoid burn-in.')
             epd.Clear()
-
+        GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
+        
 except KeyboardInterrupt:
     GPIO.cleanup()
     print("Clear...")
@@ -317,15 +320,3 @@ except IOError as e:
     print("error")
     #logging.info(e)
     epd.sleep()
-
-
-
-# Comment this out if on Pi
-# while(True):
-#     api = api_511(api_key)
-#     local_df = pd.DataFrame()
-#     for key in stops_dict:
-#         local_df = pd.concat([local_df, api.get_stop_monitoring(key)], ignore_index=True)
-#     relevant_df = relevant_format(local_df)
-#     make_image(relevant_df)
-#     time.sleep(100)
