@@ -209,24 +209,23 @@ def relevant_format(df):
 
 def make_image(df):
     #Set the fonts and header size
-    font_size = 18
+    font_size = 23
     font= ImageFont.truetype('fonts/DIN Alternate Bold.ttf', font_size)
     font_direction= ImageFont.truetype('fonts/Trebuchet MS Bold.ttf', 20)
     font_header = ImageFont.truetype('fonts/SFCompact.ttf', 20)
     font_route = ImageFont.truetype('fonts/SFCompact.ttf', 35)
     font_single_route = ImageFont.truetype('fonts/SFCompact.ttf', 30)
+    font_update= ImageFont.truetype('fonts/DIN Alternate Bold.ttf', 18)
     padding = 10
     header_space = 60
 
     # Create the image
     image_width = 800
     image_height = 480 
+    cell_width = image_width/5
+    cell_height = ((image_height - header_space)/(len(df)))
     image = Image.new("RGB", (image_width, image_height), color=(255, 255, 255))
     draw = ImageDraw.Draw(image)
-
-    # Calculate the width and height of each cell
-    cell_width = image_width/5
-    cell_height = ((image_height - header_space)/(len(df))) #need to figure this part out
 
     # Draw the table headers
     x = 0
@@ -235,45 +234,64 @@ def make_image(df):
         draw.rectangle((x, y , x + cell_width, y + header_space), fill=(194, 136, 74), outline=(0, 0, 0))
         draw.text((x + padding, y + padding), header, font=font_header, fill=0)
         x += cell_width  # adjust the column width
-
-    #Draw the rows with destination and times.  Loops through rows first
+    
+    #Draw background cell colors
     for i, row in df.iterrows():
         x = 0
         for j, val in enumerate(row):
             y = (cell_height) * (i-1) +header_space
             if j >= 1:
-                #Alternate gray background to data cells
+                #Alternate gray cells
                 if i%2 == 1:
                     draw.rectangle((x, y + cell_height , x + cell_width, y + (cell_height*2)), fill=(211, 211, 211), outline= (0,0,0))
-                #condition to change color based off whether should leave or not
-                if j >= 2 and val.split()[0] == "No":
-                    draw.text((x + 3, y + cell_height+ padding), val, font=font, fill='grey') 
-                elif j >= 2 and val.split(":")[1] == "G": #and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15: ### something like str(val.split(":")[1] == G
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='black') #Write in green text
-                elif j >= 2 and val.split(":")[1] == "R": #int(val.split()[0]) <= 4: ### something like str(val).split(":")[1] == R
-                    draw.text((x + 3, y + cell_height + padding), ("! " + val.split(":")[0] + " !"), font=font, fill=(255, 25, 37))
-                elif j>=2:
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font, fill='grey')
-                else:
-                    draw.text((x + 3, y + cell_height + padding), val.split(":")[0], font=font_direction, fill='black' )
-            elif (df['Route'] == val).sum() == 1: #The first column if there is a single instance of the route
-                draw.rectangle((x, y, x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 15, y + padding), str(val), font=font_single_route, fill=(0, 0, 0))
-                draw.line((x + cell_width - 1 ,y , x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
-            elif i%2 == 1 and (df['Route'] == val).sum() == 2: #The first column if there are two instances of the route
-                draw.rectangle((x, y, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
-                draw.text((x + 15, y + padding), str(val), font=font_route, fill=(0, 0, 0))
-                draw.line((x + cell_width - 1 ,y , x + cell_width - 1,y+(cell_height*2)), fill=(0,0,0), width=3)
             x += cell_width
             # Draw vertical lines between columns
             draw.line((x ,y , x ,y+(cell_height*2)), fill=(0,0,0), width=1)
+
+    #Draw first column and routes 
+    y = header_space
+    for i, row in df.iterrows():
+        x = 0
+        for j, val in enumerate(row):
+            if (df['Route'] == val).sum() == 1: #The first column if there is a single instance of the route
+                draw.rectangle((x, y, x + cell_width, y + cell_height), fill=(150, 94, 209), outline=(0, 0, 0))
+                draw.text((x + 20, y + padding/2), str(val), font=font_single_route, fill=(0, 0, 0))
+                y = y + (cell_height)
+            if i%2 == 1 and (df['Route'] == val).sum() == 2: #The first column if there are two instances of the route
+                draw.rectangle((x, y, x + cell_width, y + cell_height*2), fill=(150, 94, 209), outline=(0, 0, 0))
+                draw.text((x + 15, y + padding), str(val), font=font_route, fill=(0, 0, 0))
+                y = y + (cell_height * 2)
+
+    #Fill in values
+    for i, row in df.iterrows():
+        x = 0
+        for j, val in enumerate(row):
+            y = (cell_height) * (i) + header_space
+            # y = (cell_height) * (i-1) +header_space
+            if j >= 1:
+                #condition to change color based off whether should leave or not
+                if j >= 2 and val.split()[0] == "No":
+                    draw.text((x + 3, y + padding), val, font=font, fill='grey') 
+                elif j >= 2 and val.split(":")[1] == "G": #and int(val.split()[0]) >= 4 and int(val.split()[0]) <= 15: ### something like str(val.split(":")[1] == G
+                    draw.text((x + 3, y  + padding), val.split(":")[0], font=font, fill='black') #Write in green text
+                elif j >= 2 and val.split(":")[1] == "R": #int(val.split()[0]) <= 4: ### something like str(val).split(":")[1] == R
+                    draw.text((x + 3, y  + padding), (val.split(":")[0] + " !"), font=font, fill=(255, 25, 37))
+                elif j>=2:
+                    draw.text((x + 3, y  + padding), val.split(":")[0], font=font, fill='grey')
+                else:
+                    draw.text((x + 3, y  + padding), val.split(":")[0], font=font_direction, fill='black' )
+            x += cell_width
+
+
     #line separating headers from data
     draw.line((0, header_space, image_width, header_space), fill=(0, 0, 0), width=10)
+    
     #Update time:
     current_time = datetime.now()
-    current_time = current_time.strftime("%H:%M")
-    draw.text((3, 35), "Updated at " + str(current_time), font=font, fill=(0,0,0))
+    current_time = current_time.strftime("%-H:%M")
+    draw.text((3, 35), "Updated at " + str(current_time), font=font_update, fill=(0,0,0))
     print("Updated at " + str(current_time))
+
     # save the image
     unique_time = datetime.now()
     unique_time = unique_time.strftime("%-m_%-d-%H_%-M")
@@ -306,7 +324,9 @@ try:
         make_image(relevant_df)
         if datetime.now().strftime('%H') == '03':
             print('Clearing screen to avoid burn-in.')
+            epd.init()
             epd.Clear()
+            time.sleep(600)
         GPIO.wait_for_edge(button_pin, GPIO.FALLING, timeout=420000)
         
 except KeyboardInterrupt:
