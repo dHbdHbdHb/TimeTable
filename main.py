@@ -195,7 +195,7 @@ def relevant_format(df):
                                   'Laguna Honda Blvd/Forest Hill Sta': 'Forest Hill', \
                                   'Valencia St & Mission St': 'The Mission', 'Marina Blvd & Laguna St': 'Marina',\
                                   'Jones St & Beach St': "Downtown", "Wawona/46th Ave /Sf Zoo": 'SF Zoo',\
-                                  "Steuart St & Mission St": 'Embarcadero'
+                                  "Steuart St & Mission St": 'Embarcadero', "San Jose Ave & Geneva Ave" : 'Baloboa Park'
                                           })
     routes = pivot_df['Route'].tolist()
     destinations = pivot_df['Destination'].tolist()
