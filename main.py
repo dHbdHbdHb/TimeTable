@@ -61,7 +61,7 @@ class api_511:
                 }
             )
             decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
-            print(api_key)
+            #print(api_key)
             return json.loads(decoded)
         except:
             self.api_key = 'd9a97f78-8ea2-4221-a834-782930d8cd5b' #sienna's API key lol
@@ -73,7 +73,7 @@ class api_511:
                 }
             )
             decoded = response.content.decode('utf-8-sig') # strip byte order mark from response
-            print("api key used: " + api_key)
+            #print("api key used: " + api_key)
             return json.loads(decoded)      
     
     def get_stops(self, operator_id='SF'):
