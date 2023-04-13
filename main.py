@@ -311,9 +311,9 @@ def make_image(df):
 
 
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 try:
-    #logging.info("epd7in5_V2 Demo")
+    logging.info("epd7in5_V2 Demo")
     epd = epd7in5_V2.EPD()
     while(True):
         api = api_511(api_key)
@@ -332,11 +332,11 @@ try:
 except KeyboardInterrupt:
     GPIO.cleanup()
     print("Clear...")
-    #logging.info("Clear...")
+    logging.info("Clear...")
     epd.init()
     epd.Clear()
 
 except IOError as e:
     print("error")
-    #logging.info(e)
+    logging.info(e)
     epd.sleep()
