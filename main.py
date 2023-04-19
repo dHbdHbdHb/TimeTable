@@ -365,8 +365,8 @@ except Exception as e:
     logging.exception("Traceback:")
     epd.init()
     epd.Clear()
-    # e_image = "static/images/error.png"   #Have to create this error image
-    # epd.display(epd.getbuffer(e_image))   #Might need to save/create more like above
+    e_image = "static/images/error_screen.png"   #Have to create this error image
+    epd.display(epd.getbuffer(e_image))   #Might need to save/create more like above
 
     # Wait for one hour before restarting the program
     time.sleep(3600)
