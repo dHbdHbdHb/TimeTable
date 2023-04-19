@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 import os, glob
 import time
 import logging
+import subprocess
 from waveshare_epd import epd7in5_V2
 #Set up the GPIO pin
 import RPi.GPIO as GPIO
@@ -163,17 +164,28 @@ def color_tag(val, stop_id):
         return val + "error"
 
 def filter_by_time(df):
-    #filter out all 36s at stop codes 16938 and 16937
-    df = df.loc[(df['line'] != '36') | ((df['line'] == '36') & (df['monitored_stop_id'].isin(['16669', '16665'])))].reset_index(drop = True)
-    delta = []
-    for i in range(df.shape[0]):
-        #Some reformatting of objs/strings in df to be in datetime format
-        timestamp = datetime.utcnow()
-        first_arrival = format_time(df, i, 'expected_arrival_time')
-        delta.append(first_arrival - timestamp)
-    df["time_till_departure"] = delta
-    df["time_till_departure"] = df.apply(lambda x: color_tag(x['time_till_departure'], x['monitored_stop_id']), axis = 1)
-    df.sort_values(['line','destination_stop_name'], inplace=True, ignore_index=True)
+    df_logger = logging.getLogger('dataframe')
+    df_logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    file_handler = logging.FileHandler('dataframe.log')
+    file_handler.setFormatter(formatter)
+    df_logger.addHandler(file_handler)
+    try:
+        #filter out all 36s at stop codes 16938 and 16937
+        df = df.loc[(df['line'] != '36') | ((df['line'] == '36') & (df['monitored_stop_id'].isin(['16669', '16665'])))].reset_index(drop = True)
+        delta = []
+        for i in range(df.shape[0]):
+            #Some reformatting of objs/strings in df to be in datetime format
+            timestamp = datetime.utcnow()
+            first_arrival = format_time(df, i, 'expected_arrival_time')
+            delta.append(first_arrival - timestamp)
+        df["time_till_departure"] = delta
+        df["time_till_departure"] = df.apply(lambda x: color_tag(x['time_till_departure'], x['monitored_stop_id']), axis = 1)
+        df.sort_values(['line','destination_stop_name'], inplace=True, ignore_index=True)
+    except KeyError as e:
+        logging.error(f"KeyError occurred while filtering DataFrame: {e}")
+        logging.error(f"DataFrame contents: {df.to_string()}")
+        raise      
     return df.reset_index(drop = True)
 
 def relevant_format(df):
@@ -311,7 +323,13 @@ def make_image(df):
 
 
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('main')
+logger.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+file_handler = logging.FileHandler('main.log')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 try:
     logging.info("epd7in5_V2 Demo")
     epd = epd7in5_V2.EPD()
@@ -340,3 +358,17 @@ except IOError as e:
     print("error")
     logging.info(e)
     epd.sleep()
+
+except Exception as e:
+    print("Poop... you have an error and should check the logs.  Program will restart in an hour")
+    logging.error(f"Error occurred: {str(e)}")
+    logging.exception("Traceback:")
+    epd.init()
+    epd.Clear()
+    # e_image = "static/images/error.png"   #Have to create this error image
+    # epd.display(epd.getbuffer(e_image))   #Might need to save/create more like above
+
+    # Wait for one hour before restarting the program
+    time.sleep(3600)
+     # Restart the program using subprocess
+    subprocess.Popen(['python', 'main.py'])
