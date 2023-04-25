@@ -355,11 +355,13 @@ except KeyboardInterrupt:
     epd.Clear()
 
 except IOError as e:
+    GPIO.cleanup()
     print("error")
     logging.info(e)
     epd.sleep()
 
 except Exception as e:
+    GPIO.cleanup()
     print("Poop... you have an error and should check the logs.  Program will restart in an hour")
     logging.error(f"Error occurred: {str(e)}")
     logging.exception("Traceback:")
@@ -367,8 +369,7 @@ except Exception as e:
     epd.Clear()
     e_image = "static/images/error_screen.png"   #Have to create this error image
     epd.display(epd.getbuffer(e_image))   #Might need to save/create more like above
-
     # Wait for one hour before restarting the program
     time.sleep(3600)
-     # Restart the program using subprocess
+    # Restart the program using subprocess
     subprocess.Popen(['python', 'main.py'])
