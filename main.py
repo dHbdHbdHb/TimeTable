@@ -378,6 +378,9 @@ except Exception as e:
     epd.init()
     epd.Clear()
     e_image = "static/images/error_screen.png"   #Have to create this error image
+    crash_img = "static/images/error_screen.png"   #Have to create this error image
+    e_image = Image.new('1', (epd.width, epd.height), 255)
+    e_image.paste(crash_img, (0,0))
     epd.display(epd.getbuffer(e_image))   #Might need to save/create more like above
     # Wait for one hour before restarting the program
     time.sleep(3600)
